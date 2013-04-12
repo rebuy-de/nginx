@@ -60,3 +60,47 @@ You can now build the RPM.
     $ rpmbuild -ba ~/rpmbuild/SPECS/nginx.spec
 
 The RPM is saved under ~/rpmbuild/RPMS/
+
+Configuration Example
+---------------------
+
+    server {
+        server_name test.localhost;
+        root /var/www/test;
+        index index.php;
+
+        location / {
+            try_files $uri $uri/ /index.php$is_args$args;
+        }
+
+        location /auth {
+            try_files $uri $uri/ /test.php$is_args$args;
+        }
+
+        location /mike {
+            lua_need_request_body on;
+            client_max_body_size 50k;
+            client_body_buffer_size 50k;
+            access_by_lua '
+    local res = ngx.location.capture("/auth")
+    if res.status == ngx.HTTP_OK then
+        return
+    end
+
+    if res.status == ngx.HTTP_FORBIDDEN then
+        ngx.exit(res.status)
+    end
+
+    ngx.exit(ngx.HTTP_METHOD_NOT_IMPLEMENTED)
+    ';
+
+    proxy_pass http://127.0.0.1:8000/$uri;
+        }
+
+        location ~ \.php$ {
+            fastcgi_pass localhost:9000;
+            fastcgi_index index.php;
+            fastcgi_read_timeout 900;
+            include fastcgi_params;
+        }
+    }
