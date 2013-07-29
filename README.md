@@ -19,14 +19,14 @@ Now you have to switch to the new user and download all modules you want to comp
 
     # su - rpmbuilder
     $ cd ~/rpmbuild/SOURCES
-    $ wget -O ngx_devel_kit.tar.gz https://github.com/simpl/ngx_devel_kit/tarball/v0.2.17
-    $ wget -O lua-nginx-module.tar.gz https://github.com/chaoslawful/lua-nginx-module/tarball/v0.6.3
+    $ wget -O ngx_devel_kit.tar.gz https://github.com/simpl/ngx_devel_kit/archive/v0.2.18.tar.gz
+    $ wget -O lua-nginx-module.tar.gz https://github.com/chaoslawful/lua-nginx-module/archive/v0.8.5.tar.gz
 
 Grab the newest sources here:
 *   https://github.com/simpl/ngx_devel_kit/tags
 *   https://github.com/chaoslawful/lua-nginx-module/tags
 
-Next you have to edit the file ~/rpmbuild/SPEC/nginx.spec. First find the section with all the "Source" entries (Source1, Source2, etc.). Add the two tarballs to that list.
+Next you have to edit the file ~/rpmbuild/SPECS/nginx.spec. First find the section with all the "Source" entries (Source1, Source2, etc.). Add the two tarballs to that list.
 
     [..]
     Source7: nginx.suse.init
