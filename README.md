@@ -8,7 +8,7 @@ HOWTO
 
 First you have to download and unpack a fitting SRPM. We can get one directly from nginx.org: http://nginx.org/packages/centos/6/SRPMS/
 
-    # rpm -Uvh http://nginx.org/packages/centos/6/SRPMS/nginx-1.2.3-1.el6.ngx.src.rpm
+    # rpm -Uvh http://nginx.org/packages/centos/6/SRPMS/nginx-1.4.2-1.el6.ngx.src.rpm
 
 RPMs should never be build as root, so you should create a new user and move the RPM sources into its home directory.
 
