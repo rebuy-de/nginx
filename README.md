@@ -1,9 +1,18 @@
-nginx
-=====
+# RPMs needed for NGINX
+
+* lua-cjson
+* nginx mit lua modul
+
+### lua-cjson Bauanleitung
+[Bauanleitung des rpms](http://www.kyne.com.au/~mark/software/lua-cjson-manual.html#_rpm)
+
+
+### nginx
+Zusatz infos zum [Aufsetzen der Umgebung](http://fedoraproject.org/wiki/How_to_create_an_RPM_package) für RPM builds
 
 Custom nginx build with HttpLuaModule
 
-HOWTO
+### HOWTO
 -----
 
 First you have to download and unpack a fitting SRPM. We can get one directly from nginx.org: http://nginx.org/packages/centos/6/SRPMS/
@@ -12,8 +21,8 @@ First you have to download and unpack a fitting SRPM. We can get one directly fr
 
 RPMs should never be build as root, so you should create a new user and move the RPM sources into its home directory.
 
-    # useradd -m rpmbuilder
-    # mv /root/rpmbuild /home/rpmbuilder/ && chown -R rpmbuilder. /home/rpmbuilder/rpmbuild
+    # useradd -m builder
+    # mv /root/rpmbuild /home/builder/ && chown -R builder. /home/builder/rpmbuild
 
 Now you have to switch to the new user and download all modules you want to compile into nginx into ~/rpmbuild/SOURCES/
 
@@ -23,8 +32,9 @@ Now you have to switch to the new user and download all modules you want to comp
     $ wget -O lua-nginx-module.tar.gz https://github.com/chaoslawful/lua-nginx-module/archive/v0.8.5.tar.gz
 
 Grab the newest sources here:
-*   https://github.com/simpl/ngx_devel_kit/tags
-*   https://github.com/chaoslawful/lua-nginx-module/tags
+
+*   [nginx devel kit](https://github.com/simpl/ngx_devel_kit/tags)
+*   [nginx lua module](https://github.com/chaoslawful/lua-nginx-module/tags)
 
 Next you have to edit the file ~/rpmbuild/SPECS/nginx.spec. First find the section with all the "Source" entries (Source1, Source2, etc.). Add the two tarballs to that list.
 
@@ -60,47 +70,3 @@ You can now build the RPM.
     $ rpmbuild -ba ~/rpmbuild/SPECS/nginx.spec
 
 The RPM is saved under ~/rpmbuild/RPMS/
-
-Configuration Example
----------------------
-
-    server {
-        server_name test.localhost;
-        root /var/www/test;
-        index index.php;
-
-        location / {
-            try_files $uri $uri/ /index.php$is_args$args;
-        }
-
-        location /auth {
-            try_files $uri $uri/ /test.php$is_args$args;
-        }
-
-        location /mike {
-            lua_need_request_body on;
-            client_max_body_size 50k;
-            client_body_buffer_size 50k;
-            access_by_lua '
-    local res = ngx.location.capture("/auth")
-    if res.status == ngx.HTTP_OK then
-        return
-    end
-
-    if res.status == ngx.HTTP_FORBIDDEN then
-        ngx.exit(res.status)
-    end
-
-    ngx.exit(ngx.HTTP_METHOD_NOT_IMPLEMENTED)
-    ';
-
-    proxy_pass http://127.0.0.1:8000/$uri;
-        }
-
-        location ~ \.php$ {
-            fastcgi_pass localhost:9000;
-            fastcgi_index index.php;
-            fastcgi_read_timeout 900;
-            include fastcgi_params;
-        }
-    }
