@@ -7,5 +7,5 @@ if acl.needs_authorization(ngx.var.uri) then
   authorization.get_grants(ngx.req)
 end
 
-token.filter(ngx.var.uri)
+token.filter(ngx.var.uri, ngx.req)
 

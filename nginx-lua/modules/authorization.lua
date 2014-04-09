@@ -28,7 +28,6 @@ authorization.get_grants = function(request)
     ngx.exit(ngx.HTTP_UNAUTHORIZED)
   end
   
-  ngx.say(grant)
   ngx.req.set_header("Authorization", grant)
 end
 
@@ -58,6 +57,9 @@ end
 
 authorization.check_grant_is_error = function(grant)
   local dto = authorization.cjson.decode(grant)
+  if nil == dto[1] then
+    return false
+  end
   local keys = authorization.get_table_keys(dto[1])
  
   return keys["code"] and keys["message"] and keys["reference"]
