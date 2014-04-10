@@ -1,18 +1,16 @@
 local authorization = {}
 
-authorization.cjson = require "cjson"
-
-authorization.get_grants = function(request)
+authorization.get_grants = function(cjson, error_dto, request)
   local auth_header = request.get_headers()["Authorization"]
   if auth_header == nil then
     ngx.exit(ngx.HTTP_UNAUTHORIZED)
   end 
   
-  local status, auth_token = pcall(authorization.build_auth_request, auth_header)
+  local status, auth_token = pcall(authorization.build_auth_request, cjson, auth_header)
   
   if not status then
     ngx.status = ngx.HTTP_BAD_REQUEST
-    ngx.say("[" .. authorization.error_dto("VALIDATION_ERROR", "non valid json format") .. "]")
+    ngx.say("[" .. error_dto.create(cjson, "VALIDATION_ERROR", "non valid json format") .. "]")
     ngx.exit(ngx.HTTP_BAD_REQUEST)
   end
 
@@ -20,9 +18,9 @@ authorization.get_grants = function(request)
     ngx.exit(ngx.HTTP_UNAUTHORIZED)
   end 
  
-  local grant = authorization.access_confirmation(request, auth_token)
+  local grant = authorization.access_confirmation(cjson, request, auth_token)
 
-  if authorization.check_grant_is_error(grant) then
+  if authorization.check_grant_is_error(cjson, grant) then
     ngx.status = ngx.HTTP_UNAUTHORIZED
     ngx.say(grant)
     ngx.exit(ngx.HTTP_UNAUTHORIZED)
@@ -31,9 +29,9 @@ authorization.get_grants = function(request)
   ngx.req.set_header("Authorization", grant)
 end
 
-authorization.access_confirmation = function(request, auth_token)
+authorization.access_confirmation = function(cjson, request, auth_token)
   local content_header = request.get_headers()["Content-Type"]
-  local auth_json = authorization.cjson.encode(auth_token)
+  local auth_json = cjson.encode(auth_token)
   
   ngx.req.set_header("Content-Type", "Application/Json")
  
@@ -45,8 +43,8 @@ authorization.access_confirmation = function(request, auth_token)
   return res.body
 end
 
-authorization.build_auth_request = function(auth_header)
-  local auth_token_json = authorization.cjson.decode(auth_header)
+authorization.build_auth_request = function(cjson, auth_header)
+  local auth_token_json = cjson.decode(auth_header)
   
   local auth_token = {}
   auth_token.access_token = auth_token_json.access_token
@@ -55,8 +53,8 @@ authorization.build_auth_request = function(auth_header)
   return auth_token
 end
 
-authorization.check_grant_is_error = function(grant)
-  local dto = authorization.cjson.decode(grant)
+authorization.check_grant_is_error = function(cjson, grant)
+  local dto = cjson.decode(grant)
   if nil == dto[1] then
     return false
   end
@@ -72,15 +70,6 @@ authorization.get_table_keys = function(table)
   end
 
   return key_table
-end
-
-authorization.error_dto = function(code, message)
-  local dto_object = {}
-  dto_object.code = code
-  dto_object.message = message
-  dto_object.reference = "Authorization Header"
-  
-  return authorization.cjson.encode(dto_object)
 end
 
 return authorization;
