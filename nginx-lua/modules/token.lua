@@ -33,8 +33,8 @@ token.build_body = function(data)
     return data
   end
 
-  local app_id = "test"
-  local app_secret = "test"
+  local app_id = "nginx"
+  local app_secret = "Pamgi27RypevVodfo93W"
       
   local body_data = data 
   body_data = body_data .. "&client_id=" .. app_id

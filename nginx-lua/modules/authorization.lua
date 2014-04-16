@@ -18,11 +18,11 @@ authorization.get_grants = function(cjson, error_dto, request)
     ngx.exit(ngx.HTTP_UNAUTHORIZED)
   end 
  
-  local grant = authorization.access_confirmation(cjson, request, auth_token)
+  local grant_request = authorization.access_confirmation(cjson, request, auth_token)
 
-  if authorization.check_grant_is_error(cjson, grant) then
+  if grant_request.status ~= ngx.HTTP_OK then 
     ngx.status = ngx.HTTP_UNAUTHORIZED
-    ngx.say(grant)
+    ngx.say(grant_request.body)
     ngx.exit(ngx.HTTP_UNAUTHORIZED)
   end
   
@@ -40,7 +40,7 @@ authorization.access_confirmation = function(cjson, request, auth_token)
 
   ngx.req.set_header("Content-Type", content_header)
   
-  return res.body
+  return res
 end
 
 authorization.build_auth_request = function(cjson, auth_header)
@@ -48,28 +48,10 @@ authorization.build_auth_request = function(cjson, auth_header)
   
   local auth_token = {}
   auth_token.access_token = auth_token_json.access_token
-  auth_token.token_type = auth_token_json.token_type     
+  auth_token.token_type = auth_token_json.token_type
+  auth_token.scope = {auth_token_json.scope}     
 
   return auth_token
-end
-
-authorization.check_grant_is_error = function(cjson, grant)
-  local dto = cjson.decode(grant)
-  if nil == dto[1] then
-    return false
-  end
-  local keys = authorization.get_table_keys(dto[1])
- 
-  return keys["code"] and keys["message"] and keys["reference"]
-end
-
-authorization.get_table_keys = function(table)
-  local key_table = {}
-  for key, value in pairs(table) do
-    key_table[key] = true
-  end
-
-  return key_table
 end
 
 return authorization;
